@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IQ Quest — Test Your Mind</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #5b0db5;
+    --surface: #12121e;
+    --card: #1a1a2e;
+    --accent: #e8ff00;
+    --accent2: #00e5ff;
+    --accent3: #ff4d6d;
+    --text: #f0f0f0;
+    --muted: #666688;
+    --border: #2a2a44;
+    --gold: #ffd700;
+    --correct: #00e676;
+    --wrong: #ff4d6d;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body { 
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(ellipse at 20% 20%, rgba(232,255,0,0.04) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(0,229,255,0.04) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .grid-bg {
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(232,255,0,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(232,255,0,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+
+  /* HEADER */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 55px 0 40px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+    position: relative;
+  }
+
+  .logo {
+    width: 100%;
+    text-align: center;
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+  }
+
+  .page-header-title {
+    text-align: center;
+    font-size: 1.4rem;
+    font-weight: 750;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  .score-display {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .logo span { color: var(--accent); }
+
+  .score-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 40px;
+    padding: 8px 20px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.9rem;
+  }
+
+  .score-display .pts { color: var(--accent); font-weight: 700; }
+
+  /* SCREENS */
+  .screen { display: none; animation: fadeUp 0.4s ease; }
+  .screen.active { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* LEVEL SELECT */
+  .level-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  .level-card {
+    aspect-ratio: 1;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    border: 2px solid var(--border);
+  }
+
+  .level-card.unlocked {
+    background: var(--card);
+    border-color: var(--accent);
+    cursor: pointer;
+  }
+
+  .level-card.unlocked::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(232,255,0,0.1), transparent);
+  }
+
+  .level-card.unlocked:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(232,255,0,0.2);
+  }
+
+  .level-card.completed {
+    background: var(--card);
+    border-color: var(--correct);
+  }
+
+  .level-card.completed::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,230,118,0.1), transparent);
+  }
+
+  .level-card.locked {
+    background: var(--surface);
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .level-num {
+    font-size: 2rem;
+    font-weight: 800;
+  }
+
+  .level-card.unlocked .level-num { color: var(--accent); }
+  .level-card.completed .level-num { color: var(--correct); }
+  .level-card.locked .level-num { color: var(--muted); }
+
+  .level-label {
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .lock-icon { font-size: 1.4rem; }
+
+  .section-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 8px;
+  }
+
+  .section-sub {
+    color: var(--muted);
+    font-size: 0.95rem;
+    margin-bottom: 32px;
+  }
+
+  /* IQ BAR INTRO */
+  .iq-intro {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 28px;
+    margin-bottom: 32px;
+  }
+
+  .iq-intro h3 {
+    font-size: 1rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 16px;
+  }
+
+  .iq-scale {
+    display: flex;
+    gap: 4px;
+    align-items: flex-end;
+    height: 50px;
+    margin-bottom: 12px;
+  }
+
+  .iq-bar {
+    flex: 1;
+    border-radius: 4px 4px 0 0;
+    background: var(--border);
+    transition: background 0.3s;
+  }
+
+  .iq-bar.active { background: var(--accent); }
+
+  .iq-labels {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* QUIZ SCREEN */
+  .question-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+
+  .q-counter {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .q-counter span { color: var(--accent); font-weight: 700; }
+
+  .progress-bar {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  .category-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+
+  .cat-geo { background: rgba(0,229,255,0.15); color: var(--accent2); border: 1px solid rgba(0,229,255,0.3); }
+  .cat-math { background: rgba(232,255,0,0.12); color: var(--accent); border: 1px solid rgba(232,255,0,0.3); }
+  .cat-sci { background: rgba(0,230,118,0.12); color: var(--correct); border: 1px solid rgba(0,230,118,0.3); }
+  .cat-phys { background: rgba(255,77,109,0.12); color: var(--accent3); border: 1px solid rgba(255,77,109,0.3); }
+  .cat-hist { background: rgba(255, 170, 0, 0.12); color: #ffb347; border: 1px solid rgba(255, 170, 0, 0.3); }
+  .cat-sport { background: rgba(138, 92, 246, 0.14); color: #b48cff; border: 1px solid rgba(138, 92, 246, 0.3); }
+
+  .image-box {
+    width: 100%;
+    height: 200px;
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 24px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 5rem;
+    position: relative;
+  }
+
+  .image-box .map-art {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+    background: linear-gradient(135deg, var(--surface) 0%, var(--card) 100%);
+  }
+
+  .question-text {
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1.4;
+    margin-bottom: 28px;
+    letter-spacing: -0.3px;
+  }
+
+  .options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .option-btn {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .option-letter {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+
+  .option-btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(232,255,0,0.12);
+  }
+
+  .option-btn:hover:not(:disabled) .option-letter {
+    background: var(--accent);
+    color: #000;
+  }
+
+  .option-btn.correct {
+    border-color: var(--correct);
+    background: rgba(0,230,118,0.1);
+  }
+
+  .option-btn.correct .option-letter {
+    background: var(--correct);
+    color: #000;
+  }
+
+  .option-btn.wrong {
+    border-color: var(--wrong);
+    background: rgba(255,77,109,0.1);
+  }
+
+  .option-btn.wrong .option-letter {
+    background: var(--wrong);
+    color: #fff;
+  }
+
+  .option-btn:disabled { cursor: not-allowed; opacity: 0.7; }
+
+  .feedback-box {
+    border-radius: 14px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    display: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    animation: fadeUp 0.3s ease;
+  }
+
+  .feedback-box.correct-fb {
+    background: rgba(0,230,118,0.12);
+    border: 1px solid rgba(0,230,118,0.4);
+    color: var(--correct);
+    display: block;
+  }
+
+  .feedback-box.wrong-fb {
+    background: rgba(255,77,109,0.1);
+    border: 1px solid rgba(255,77,109,0.3);
+    color: var(--wrong);
+    display: block;
+  }
+
+  .second-chance-note {
+    font-size: 0.8rem;
+    opacity: 0.8;
+    margin-top: 4px;
+    font-weight: 400;
+  }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 32px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    letter-spacing: 0.3px;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(232,255,0,0.35);
+  }
+
+  .btn-secondary {
+    background: var(--card);
+    color: var(--text);
+    border: 2px solid var(--border);
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  /* RESULTS SCREEN */
+  .result-hero {
+    text-align: center;
+    padding: 48px 0 40px;
+  }
+
+  .iq-number {
+    font-size: 6rem;
+    font-weight: 800;
+    letter-spacing: -4px;
+    line-height: 1;
+    margin: 16px 0;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .iq-number.pass { color: var(--accent); }
+  .iq-number.fail { color: var(--accent3); }
+
+  .iq-label {
+    font-size: 1.1rem;
+    color: var(--muted);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .iq-verdict {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-bottom: 12px;
+  }
+
+  .iq-desc {
+    color: var(--muted);
+    max-width: 480px;
+    margin: 0 auto 32px;
+    line-height: 1.6;
+  }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 32px 0;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .stat-val {
+    font-size: 2rem;
+    font-weight: 800;
+    font-family: 'Space Mono', monospace;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+
+  .stat-name {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .pass-banner {
+    background: linear-gradient(135deg, rgba(232,255,0,0.1), rgba(0,229,255,0.05));
+    border: 1px solid rgba(232,255,0,0.3);
+    border-radius: 20px;
+    padding: 24px;
+    text-align: center;
+    margin: 24px 0;
+  }
+
+  .fail-banner {
+    background: rgba(255,77,109,0.08);
+    border: 1px solid rgba(255,77,109,0.25);
+    border-radius: 20px;
+    padding: 24px;
+    text-align: center;
+    margin: 24px 0;
+  }
+
+  .action-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+
+  /* IQ METER */
+  .iq-meter {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 24px;
+    margin: 24px 0;
+  }
+
+  .iq-meter-title {
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  .iq-bar-outer {
+    height: 12px;
+    background: var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .iq-bar-fill {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+  }
+
+  .iq-bar-fill.pass-bar { background: linear-gradient(90deg, var(--accent2), var(--accent)); }
+  .iq-bar-fill.fail-bar { background: linear-gradient(90deg, var(--accent3), #ff8a65); }
+
+  .iq-threshold-line {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+  }
+
+  .threshold-mark {
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  /* Responsive layout */
+  @media (max-width: 900px) {
+    .level-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .score-display {
+      font-size: 0.9rem;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .container {
+      padding: 16px 14px 60px;
+    }
+
+    header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 18px 0 24px;
+      margin-bottom: 24px;
+    }
+
+    .logo {
+      font-size: 1.35rem;
+    }
+
+    .score-display {
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      width: 100%;
+      justify-content: flex-start;
+    }
+
+    .section-title {
+      font-size: 1.75rem;
+    }
+
+    .section-sub {
+      font-size: 0.92rem;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+
+    .level-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .level-card {
+      min-height: 92px;
+      border-radius: 14px;
+    }
+
+    .iq-intro {
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .question-meta {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .image-box {
+      height: 170px;
+      margin-bottom: 18px;
+    }
+
+    .question-text {
+      font-size: 1.15rem;
+      margin-bottom: 20px;
+    }
+
+    .options-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .option-btn {
+      padding: 16px 18px;
+      font-size: 0.95rem;
+      min-height: 62px;
+    }
+
+    .btn {
+      width: 100%;
+      justify-content: center;
+      padding: 13px 18px;
+      min-height: 48px;
+    }
+
+    .action-row {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .result-hero {
+      padding: 28px 0 24px;
+    }
+
+    .iq-number {
+      font-size: 4rem;
+      margin: 12px 0;
+    }
+
+    .stats-row {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .stat-card {
+      padding: 16px;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .level-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .image-box {
+      height: 150px;
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .container {
+      padding: 12px 12px 40px;
+    }
+
+    .logo {
+      font-size: 1.2rem;
+    }
+
+    .section-title {
+      font-size: 1.45rem;
+    }
+
+    .section-sub {
+      font-size: 0.88rem;
+    }
+
+    .level-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .level-card {
+      min-height: 88px;
+    }
+
+    .level-num {
+      font-size: 1.5rem;
+    }
+
+    .image-box {
+      height: 130px;
+      font-size: 3rem;
+    }
+
+    .question-text {
+      font-size: 1rem;
+    }
+
+    .iq-number {
+      font-size: 3rem;
+    }
+
+    .iq-meter,
+    .pass-banner,
+    .fail-banner {
+      padding: 18px;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+
+<div class="container">
+  <div class="page-header-title">TEST YOUR IQ</div>
+  <header>
+    <div class="logo">IQ<span>Quest</span></div>
+    <div class="score-display">
+      Score: <span class="pts" id="headerScore">0</span>
+    </div>
+  </header>
+
+  <!-- LEVEL SELECT SCREEN -->
+  <div class="screen active" id="screenLevels">
+    <div class="section-title">Choose a Level</div>
+    <div class="section-sub">Only Level 1 is unlocked. Earn IQ ≥ 100 to unlock the next level.</div>
+    <div class="level-grid" id="levelGrid"></div>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div class="screen" id="screenQuiz">
+    <div class="question-meta">
+      <span class="q-counter">Question <span id="qCurrent">1</span> of <span id="qTotal">27</span></span>
+      <span class="q-counter">Level <span id="qLevel">1</span></span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+    <div class="category-badge" id="catBadge"></div>
+    <div class="image-box" id="questionImage"></div>
+    <div class="question-text" id="questionText"></div>
+
+    <div class="options-grid" id="optionsGrid"></div>
+    <div class="feedback-box" id="feedbackBox"></div>
+
+    <div style="display:flex;gap:12px;justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="skipQuestion()">Skip →</button>
+      <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" disabled>Next →</button>
+    </div>
+  </div>
+
+  <!-- RESULTS SCREEN -->
+  <div class="screen" id="screenResults">
+    <div class="result-hero">
+      <div class="iq-label">Your IQ score</div>
+      <div class="iq-number" id="resultIQ">0</div>
+      <div class="iq-verdict" id="resultVerdict"></div>
+      <div class="iq-desc" id="resultDesc"></div>
+    </div>
+
+    <div class="iq-meter">
+      <div class="iq-meter-title">IQ Scale (Level 1)</div>
+      <div class="iq-bar-outer">
+        <div class="iq-bar-fill" id="iqBarFill" style="width:0%"></div>
+      </div>
+      <div class="iq-threshold-line">
+        <span>60</span>
+        <span class="threshold-mark">← 100 (min for Level 2)</span>
+        <span>160</span>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-val" id="statPts">0</div>
+        <div class="stat-name">Ukupno bodova</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="statMax">0</div>
+        <div class="stat-name">Max mogući</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="statPct">0%</div>
+        <div class="stat-name">Uspješnost</div>
+      </div>
+    </div>
+
+    <div id="verdictBanner"></div>
+
+    <div class="action-row">
+      <button class="btn btn-secondary" onclick="goToLevels()">← Leveli</button>
+      <button class="btn btn-primary" onclick="retryLevel()">Retry</button>
+      <button class="btn btn-primary" id="nextLevelBtn" onclick="goNextLevel()" style="display:none">Level 2 →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+const state = {
+  unlockedLevels: [1],
+  completedLevels: {},
+  iqScores: {},
+  currentLevel: null,
+  currentQ: 0,
+  totalScore: 0,
+  firstAttempt: true,
+  answered: false,
+  skipped: 0,
+  correctFirst: 0,
+  correctSecond: 0,
+};
+
+// ─── QUESTIONS ────────────────────────────────────────────────────────────────
+const QUESTIONS = {
+  1: [
+    // GEOGRAPHY (1-9, easy→hard)
+    {
+      cat: "geo", catLabel: "Geography",
+      emoji: "🗺️", label: "Europe Map",
+      q: "What is the capital of France?",
+      opts: ["Berlin", "Paris", "Madrid", "Rome"], ans: 1
+    },
+    {
+      cat: "geo", catLabel: "Geography",
+      emoji: "🌍", label: "Africa Map",
+      q: "Which is the largest continent in the world?",
+      opts: ["South America", "Australia", "Asia", "Africa"], ans: 2
+    },
+    {
+      cat: "geo", catLabel: "Geography",
+      emoji: "🏔️", label: "Himalayas",
+      q: "What is the highest mountain peak on Earth?",
+      opts: ["K2", "Kilimanjaro", "Mont Blanc", "Mount Everest"], ans: 3
+    },
+    {
+      cat: "geo", catLabel: "Geography",
+      emoji: "🌊", label: "Ocean",
+      q: "Which is the largest ocean on Earth?",
+      opts: ["Atlantic", "Indian", "Pacific", "Arctic"], ans: 2
+    },
+    {
+      cat: "geo", catLabel: "Geography",
+      emoji: "🗾", label: "Asia Map",
+      q: "What is the capital of Japan?",
+      opts: ["Seoul", "Beijing", "Tokyo", "Bangkok"], ans: 2
+    },
+    {
+      cat: "geo", catLabel: "Geography",
+      emoji: "🌐", label: "World Rivers",
+      q: "Which is the longest river in the world?",
+      opts: ["Amazon", "Nile", "Yangtze", "Mississippi"], ans: 1
+    },
+    {
+      cat: "geo", catLabel: "Geography",
+      emoji: "🏜️", label: "Deserts",
+      q: "Which is the largest hot desert in the world?",
+      opts: ["Arabian", "Gobi", "Sahara", "Atacama"], ans: 2
+    },
+    {
+      cat: "geo", catLabel: "Geography",
+      emoji: "🌏", label: "Australia Map",
+      q: "What is the capital of Australia?",
+      opts: ["Melbourne", "Sydney", "Brisbane", "Canberra"], ans: 3
+    },
+    {
+      cat: "geo", catLabel: "Geography",
+      emoji: "🗻", label: "European Mountains",
+      q: "In which country are the Alps primarily located?",
+      opts: ["Spain", "Switzerland", "Norway", "Greece"], ans: 1
+    },
+    // GENERAL SCIENCE (10-15)
+    {
+      cat: "sci", catLabel: "General Science",
+      emoji: "🔬", label: "Science",
+      q: "How many chromosomes are in a normal human cell?",
+      opts: ["23", "44", "46", "52"], ans: 2
+    },
+    {
+      cat: "sci", catLabel: "General Science",
+      emoji: "🧬", label: "DNA",
+      q: "What is the basic unit of living organisms called?",
+      opts: ["Atom", "Molecule", "Cell", "Tissue"], ans: 2
+    },
+    {
+      cat: "sci", catLabel: "General Science",
+      emoji: "💧", label: "Chemistry",
+      q: "What is the chemical formula for water?",
+      opts: ["CO2", "H2O", "O2", "NaCl"], ans: 1
+    },
+    {
+      cat: "sci", catLabel: "General Science",
+      emoji: "🌡️", label: "Physical Quantities",
+      q: "At what temperature does water boil at standard pressure?",
+      opts: ["90°C", "95°C", "100°C", "110°C"], ans: 2
+    },
+    {
+      cat: "sci", catLabel: "General Science",
+      emoji: "🌍", label: "Geology",
+      q: "What is Earth’s atmosphere mostly made of?",
+      opts: ["Oxygen", "Carbon dioxide", "Hydrogen", "Nitrogen"], ans: 3
+    },
+    {
+      cat: "sci", catLabel: "General Science",
+      emoji: "⚡", label: "Electricity",
+      q: "Which scientist discovered electromagnetic induction?",
+      opts: ["Tesla", "Edison", "Faraday", "Ohm"], ans: 2
+    },
+    // MATHEMATICS (16-21)
+    {
+      cat: "math", catLabel: "Mathematics",
+      emoji: "🔢", label: "Arithmetic",
+      q: "What is 15 × 15?",
+      opts: ["200", "215", "225", "250"], ans: 2
+    },
+    {
+      cat: "math", catLabel: "Mathematics",
+      emoji: "📐", label: "Geometry",
+      q: "What is the sum of the interior angles of a triangle?",
+      opts: ["90°", "120°", "180°", "360°"], ans: 2
+    },
+    {
+      cat: "math", catLabel: "Mathematics",
+      emoji: "🧮", label: "Algebra",
+      q: "If x² = 144, what is x?",
+      opts: ["10", "11", "12", "13"], ans: 2
+    },
+    {
+      cat: "math", catLabel: "Mathematics",
+      emoji: "📏", label: "Geometry",
+      q: "What is the circumference of a circle with radius r?",
+      opts: ["πr", "2πr", "πr²", "2πr²"], ans: 1
+    },
+    {
+      cat: "math", catLabel: "Mathematics",
+      emoji: "🔢", label: "Number Theory",
+      q: "What is the smallest prime number?",
+      opts: ["0", "1", "2", "3"], ans: 2
+    },
+    {
+      cat: "math", catLabel: "Mathematics",
+      emoji: "📊", label: "Statistics",
+      q: "For the set {4, 7, 7, 9, 13}, what is the median?",
+      opts: ["6", "7", "8", "9"], ans: 1
+    },
+    // PHYSICS (22-27)
+    {
+      cat: "phys", catLabel: "Physics",
+      emoji: "⚡", label: "Physics",
+      q: "What is the approximate speed of light in vacuum?",
+      opts: ["150,000 km/s", "200,000 km/s", "300,000 km/s", "400,000 km/s"], ans: 2
+    },
+    {
+      cat: "phys", catLabel: "Physics",
+      emoji: "🍎", label: "Forces",
+      q: "Who formulated the laws of gravity?",
+      opts: ["Einstein", "Newton", "Galileo", "Bohr"], ans: 1
+    },
+    {
+      cat: "phys", catLabel: "Physics",
+      emoji: "🔋", label: "Energy",
+      q: "What is the unit of electrical resistance?",
+      opts: ["Ampere", "Volt", "Ohm (Ω)", "Watt"], ans: 2
+    },
+    {
+      cat: "phys", catLabel: "Physics",
+      emoji: "🌡️", label: "Thermodynamics",
+      q: "What happens to the volume of a gas when temperature increases at constant pressure?",
+      opts: ["It stays the same", "It decreases", "It increases", "It varies randomly"], ans: 2
+    },
+    {
+      cat: "phys", catLabel: "Physics",
+      emoji: "⚛️", label: "Atomic Physics",
+      q: "What is an atomic nucleus made of?",
+      opts: ["Electrons and protons", "Only protons", "Protons and neutrons", "Neutrons and electrons"], ans: 2
+    },
+    {
+      cat: "phys", catLabel: "Physics",
+      emoji: "🔭", label: "Astrophysics",
+      q: "Approximately how far is the Earth from the Sun?",
+      opts: ["15 million km", "50 million km", "150 million km", "1 billion km"], ans: 2
+    },
+  ],
+  2: [
+    {
+      cat: "geo", catLabel: "Geography",
+      emoji: "🌎", label: "World Geography",
+      q: "What is the capital of Argentina?",
+      opts: ["Santiago", "Lima", "Buenos Aires", "Montevideo"], ans: 2
+    },
+    {
+      cat: "math", catLabel: "Mathematics",
+      emoji: "🔢", label: "Multiplication",
+      q: "What is 18 × 12?",
+      opts: ["196", "204", "216", "228"], ans: 2
+    },
+    {
+      cat: "geo", catLabel: "Geography",
+      emoji: "🌍", label: "Population",
+      q: "Which country has the largest population in the world?",
+      opts: ["India", "United States", "Indonesia", "China"], ans: 3
+    },
+    {
+      cat: "hist", catLabel: "History",
+      emoji: "🏺", label: "Ancient Civilizations",
+      q: "Which civilization built the pyramids of Giza?",
+      opts: ["Romans", "Greeks", "Persians", "Ancient Egyptians"], ans: 3
+    },
+    {
+      cat: "geo", catLabel: "Geography",
+      emoji: "🌊", label: "Europe Rivers",
+      q: "Which is the longest river in Europe?",
+      opts: ["Danube", "Rhine", "Volga", "Nile"], ans: 2
+    },
+    {
+      cat: "math", catLabel: "Mathematics",
+      emoji: "√", label: "Square Roots",
+      q: "What is the square root of 225?",
+      opts: ["12", "14", "15", "16"], ans: 2
+    },
+    {
+      cat: "geo", catLabel: "Geography",
+      emoji: "🇯🇵", label: "Asia",
+      q: "Which country is known as the Land of the Rising Sun?",
+      opts: ["China", "South Korea", "Thailand", "Japan"], ans: 3
+    },
+    {
+      cat: "hist", catLabel: "History",
+      emoji: "🕊️", label: "World War II",
+      q: "In which year did World War II end?",
+      opts: ["1944", "1945", "1946", "1950"], ans: 1
+    },
+    {
+      cat: "geo", catLabel: "Geography",
+      emoji: "🏜️", label: "Deserts",
+      q: "Which desert is the largest hot desert in the world?",
+      opts: ["Arabian Desert", "Gobi Desert", "Kalahari Desert", "Sahara Desert"], ans: 3
+    },
+    {
+      cat: "math", catLabel: "Mathematics",
+      emoji: "📊", label: "Percentages",
+      q: "What is 35% of 200?",
+      opts: ["60", "70", "75", "80"], ans: 1
+    },
+    {
+      cat: "geo", catLabel: "Geography",
+      emoji: "🌊", label: "Oceans",
+      q: "Which is the largest ocean on Earth?",
+      opts: ["Atlantic Ocean", "Indian Ocean", "Arctic Ocean", "Pacific Ocean"], ans: 3
+    },
+    {
+      cat: "hist", catLabel: "History",
+      emoji: "🇺🇸", label: "Founding Figures",
+      q: "Who was the first President of the United States?",
+      opts: ["Abraham Lincoln", "Thomas Jefferson", "John Adams", "George Washington"], ans: 3
+    },
+    {
+      cat: "geo", catLabel: "Geography",
+      emoji: "🇨🇦", label: "North America",
+      q: "What is the capital of Canada?",
+      opts: ["Toronto", "Vancouver", "Montreal", "Ottawa"], ans: 3
+    },
+    {
+      cat: "math", catLabel: "Mathematics",
+      emoji: "🧮", label: "Divisibility",
+      q: "Which number is divisible by both 3 and 5?",
+      opts: ["18", "24", "30", "32"], ans: 2
+    },
+    {
+      cat: "geo", catLabel: "Geography",
+      emoji: "🏯", label: "Landmarks",
+      q: "The Great Wall is located in which country?",
+      opts: ["Japan", "India", "Mongolia", "China"], ans: 3
+    },
+    {
+      cat: "hist", catLabel: "History",
+      emoji: "🏛️", label: "Ancient Rome",
+      q: "Which empire was ruled by Julius Caesar?",
+      opts: ["Byzantine Empire", "Ottoman Empire", "Holy Roman Empire", "Roman Empire"], ans: 3
+    },
+    {
+      cat: "geo", catLabel: "Geography",
+      emoji: "🏝️", label: "Islands",
+      q: "Which country has the most islands in the world?",
+      opts: ["Indonesia", "Canada", "Norway", "Sweden"], ans: 3
+    },
+    {
+      cat: "math", catLabel: "Mathematics",
+      emoji: "🔢", label: "Exponents",
+      q: "What is the value of 9³?",
+      opts: ["243", "729", "512", "656"], ans: 1
+    },
+    {
+      cat: "geo", catLabel: "Geography",
+      emoji: "🌍", label: "Africa",
+      q: "Which continent is Egypt located on?",
+      opts: ["Europe", "Asia", "South America", "Africa"], ans: 3
+    },
+    {
+      cat: "hist", catLabel: "History",
+      emoji: "🧭", label: "Exploration",
+      q: "Who discovered America in 1492?",
+      opts: ["Ferdinand Magellan", "Vasco da Gama", "James Cook", "Christopher Columbus"], ans: 3
+    },
+    {
+      cat: "geo", catLabel: "Geography",
+      emoji: "🌏", label: "Continents",
+      q: "Which is the smallest continent?",
+      opts: ["Europe", "Antarctica", "South America", "Australia"], ans: 3
+    },
+    {
+      cat: "math", catLabel: "Mathematics",
+      emoji: "🔢", label: "Squares",
+      q: "What is 15²?",
+      opts: ["205", "215", "225", "235"], ans: 2
+    },
+    {
+      cat: "hist", catLabel: "History",
+      emoji: "🧱", label: "Cold War",
+      q: "What was the name of the wall that divided Berlin until 1989?",
+      opts: ["Iron Curtain", "Great Wall", "Hadrian's Wall", "Berlin Wall"], ans: 3
+    },
+    {
+      cat: "math", catLabel: "Mathematics",
+      emoji: "➗", label: "Division",
+      q: "What is 144 ÷ 12?",
+      opts: ["10", "11", "12", "13"], ans: 2
+    },
+    {
+      cat: "hist", catLabel: "History",
+      emoji: "📜", label: "French Revolution",
+      q: "In which century did the French Revolution begin?",
+      opts: ["17th century", "18th century", "19th century", "20th century"], ans: 1
+    },
+    {
+      cat: "hist", catLabel: "History",
+      emoji: "🏅", label: "Ancient Greece",
+      q: "Which ancient civilization invented the Olympic Games?",
+      opts: ["Romans", "Egyptians", "Persians", "Greeks"], ans: 3
+    },
+    {
+      cat: "sport", catLabel: "Sport",
+      emoji: "⚽", label: "Football",
+      q: "How many players are on the field for one soccer team?",
+      opts: ["9", "10", "12", "11"], ans: 3
+    },
+    {
+      cat: "sport", catLabel: "Sport",
+      emoji: "⛳", label: "Golf",
+      q: "In which sport is the term 'birdie' used?",
+      opts: ["Tennis", "Baseball", "Cricket", "Golf"], ans: 3
+    },
+    {
+      cat: "sport", catLabel: "Sport",
+      emoji: "🏅", label: "Olympics",
+      q: "How often are the Summer Olympic Games held?",
+      opts: ["Every 2 years", "Every 3 years", "Every 5 years", "Every 4 years"], ans: 3
+    },
+    {
+      cat: "sport", catLabel: "Sport",
+      emoji: "⚽", label: "World Cup",
+      q: "Which country has won the most FIFA World Cup titles?",
+      opts: ["Germany", "Italy", "Argentina", "Brazil"], ans: 3
+    },
+    {
+      cat: "sport", catLabel: "Sport",
+      emoji: "♞", label: "Chess",
+      q: "In chess, which piece moves in an L-shape?",
+      opts: ["Bishop", "Queen", "Rook", "Knight"], ans: 3
+    },
+    {
+      cat: "sport", catLabel: "Sport",
+      emoji: "🏸", label: "Rackets",
+      q: "Which sport uses a shuttlecock?",
+      opts: ["Tennis", "Squash", "Table Tennis", "Badminton"], ans: 3
+    },
+    {
+      cat: "sport", catLabel: "Sport",
+      emoji: "🏈", label: "American Football",
+      q: "How many points is a touchdown worth in American football?",
+      opts: ["3", "5", "6", "7"], ans: 2
+    },
+    {
+      cat: "sport", catLabel: "Sport",
+      emoji: "🏟️", label: "Olympic Host",
+      q: "Which country hosted the 2016 Summer Olympics?",
+      opts: ["China", "United Kingdom", "Japan", "Brazil"], ans: 3
+    },
+    {
+      cat: "sport", catLabel: "Sport",
+      emoji: "🎾", label: "Tennis",
+      q: "In tennis, how many sets must a player usually win to win a Grand Slam men's match?",
+      opts: ["2", "3", "4", "5"], ans: 1
+    },
+    {
+      cat: "sport", catLabel: "Sport",
+      emoji: "⚽", label: "World Cup",
+      q: "Which country won the 2022 FIFA World Cup?",
+      opts: ["France", "Brazil", "Croatia", "Argentina"], ans: 3
+    },
+    {
+      cat: "sport", catLabel: "Sport",
+      emoji: "⚽", label: "Football",
+      q: "Which sport is known as the 'king of sports'?",
+      opts: ["Basketball", "Tennis", "Cricket", "Football (Soccer)"], ans: 3
+    }
+  ]
+};
+
+// ─── IQ FORMULA ──────────────────────────────────────────────────────────────
+function calcIQ(score, maxScore) {
+  const ratio = score / maxScore;
+  // IQ range 60–160; threshold 100 at ~47% ratio (avg-difficulty quiz)
+  const iq = Math.round(60 + ratio * 100);
+  return Math.min(Math.max(iq, 60), 160);
+}
+
+// ─── RENDER LEVELS ───────────────────────────────────────────────────────────
+function renderLevels() {
+  const grid = document.getElementById('levelGrid');
+  grid.innerHTML = '';
+  for (let i = 1; i <= 5; i++) {
+    const div = document.createElement('div');
+    const isUnlocked = state.unlockedLevels.includes(i);
+    const isCompleted = state.completedLevels[i];
+    div.className = 'level-card ' + (isCompleted ? 'completed' : isUnlocked ? 'unlocked' : 'locked');
+
+    if (isCompleted) {
+      div.innerHTML = `<div class="level-num">✓</div><div class="level-label">Level ${i}</div><div style="font-size:0.7rem;color:var(--correct)">IQ ${state.iqScores[i]}</div>`;
+    } else if (isUnlocked) {
+      div.innerHTML = `<div class="level-num">${i}</div><div class="level-label">Play →</div>`;
+      div.onclick = () => startLevel(i);
+    } else {
+      div.innerHTML = `<div class="lock-icon">🔒</div><div class="level-num">${i}</div><div class="level-label">Locked</div>`;
+    }
+    grid.appendChild(div);
+  }
+}
+
+// ─── START LEVEL ─────────────────────────────────────────────────────────────
+function startLevel(level) {
+  state.currentLevel = level;
+  state.currentQ = 0;
+  state.totalScore = 0;
+  state.skipped = 0;
+  state.correctFirst = 0;
+  state.correctSecond = 0;
+  showScreen('screenQuiz');
+  loadQuestion();
+}
+
+function loadQuestion() {
+  const qs = QUESTIONS[state.currentLevel];
+  const q = qs[state.currentQ];
+  state.firstAttempt = true;
+  state.answered = false;
+
+  document.getElementById('qCurrent').textContent = state.currentQ + 1;
+  document.getElementById('qTotal').textContent = qs.length;
+  document.getElementById('qLevel').textContent = state.currentLevel;
+
+  const pct = ((state.currentQ) / qs.length) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+
+  // Category badge
+  const badge = document.getElementById('catBadge');
+  badge.textContent = q.catLabel;
+  badge.className = 'category-badge cat-' + q.cat;
+
+  // Image
+  document.getElementById('questionImage').innerHTML = `<div class="map-art">${q.emoji}</div>`;
+
+  document.getElementById('questionText').textContent = q.q;
+
+  const grid = document.getElementById('optionsGrid');
+  grid.innerHTML = '';
+  const letters = ['A', 'B', 'C', 'D'];
+  q.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="option-letter">${letters[i]}</span>${opt}`;
+    btn.onclick = () => selectOption(i);
+    grid.appendChild(btn);
+  });
+
+  document.getElementById('feedbackBox').className = 'feedback-box';
+  document.getElementById('feedbackBox').innerHTML = '';
+  document.getElementById('nextBtn').disabled = true;
+  document.getElementById('headerScore').textContent = state.totalScore;
+}
+
+function selectOption(idx) {
+  if (state.answered) return;
+  const qs = QUESTIONS[state.currentLevel];
+  const q = qs[state.currentQ];
+  const btns = document.querySelectorAll('.option-btn');
+  const feedback = document.getElementById('feedbackBox');
+
+  if (idx === q.ans) {
+    // CORRECT
+    btns[idx].classList.add('correct');
+    btns.forEach(b => b.disabled = true);
+    state.answered = true;
+
+    const pts = state.firstAttempt ? 3 : 1;
+    state.totalScore += pts;
+    document.getElementById('headerScore').textContent = state.totalScore;
+
+    if (state.firstAttempt) {
+      state.correctFirst++;
+      feedback.className = 'feedback-box correct-fb';
+      feedback.innerHTML = `✅ Great! +3 points (correct answer on first try)`;
+    } else {
+      state.correctSecond++;
+      feedback.className = 'feedback-box correct-fb';
+      feedback.innerHTML = `✅ Correct! +1 point (correct on second try)`;
+    }
+    document.getElementById('nextBtn').disabled = false;
+  } else {
+    // WRONG
+    btns[idx].classList.add('wrong');
+
+    if (state.firstAttempt) {
+      state.firstAttempt = false;
+      btns[idx].disabled = true;
+      feedback.className = 'feedback-box wrong-fb';
+      feedback.innerHTML = `❌ Wrong! <div class="second-chance-note">You have one more attempt — this answer is worth 1 point.</div>`;
+    } else {
+      // Second wrong — show correct
+      btns.forEach(b => b.disabled = true);
+      btns[q.ans].classList.add('correct');
+      state.answered = true;
+      feedback.className = 'feedback-box wrong-fb';
+      feedback.innerHTML = `❌ Wrong! The correct answer is: <strong>${q.opts[q.ans]}</strong>`;
+      document.getElementById('nextBtn').disabled = false;
+    }
+  }
+}
+
+function nextQuestion() {
+  const qs = QUESTIONS[state.currentLevel];
+  if (state.currentQ + 1 >= qs.length) {
+    showResults();
+    return;
+  }
+  state.currentQ++;
+  loadQuestion();
+}
+
+function skipQuestion() {
+  state.skipped++;
+  const qs = QUESTIONS[state.currentLevel];
+  if (state.currentQ + 1 >= qs.length) {
+    showResults();
+    return;
+  }
+  state.currentQ++;
+  loadQuestion();
+}
+
+// ─── RESULTS ─────────────────────────────────────────────────────────────────
+function showResults() {
+  showScreen('screenResults');
+  const qs = QUESTIONS[state.currentLevel];
+  const maxScore = qs.length * 3;
+  const iq = calcIQ(state.totalScore, maxScore);
+  state.iqScores[state.currentLevel] = iq;
+
+  const passed = iq >= 100;
+
+  // Animate IQ number
+  const iqEl = document.getElementById('resultIQ');
+  iqEl.className = 'iq-number ' + (passed ? 'pass' : 'fail');
+  animateNumber(iqEl, 0, iq, 1200);
+
+  // Verdict
+  let verdict = '', desc = '';
+  if (iq >= 140) { verdict = '🌟 Genius!'; desc = 'Outstanding score! Your mind is operating at a top level.'; }
+  else if (iq >= 120) { verdict = '🎓 High intelligence'; desc = 'Above-average result. You understand complex concepts well.'; }
+  else if (iq >= 100) { verdict = '✅ Above average'; desc = 'Pass! You have a strong knowledge level. Level 2 is unlocked!'; }
+  else if (iq >= 85) { verdict = '📘 Average'; desc = 'Good result, but not enough for the next level. Try again!'; }
+  else { verdict = '💪 Keep practicing'; desc = 'You did not pass this time. Review and try again!'; }
+
+  document.getElementById('resultVerdict').textContent = verdict;
+  document.getElementById('resultDesc').textContent = desc;
+
+  // Stats
+  document.getElementById('statPts').textContent = state.totalScore;
+  document.getElementById('statMax').textContent = maxScore;
+  document.getElementById('statPct').textContent = Math.round((state.totalScore / maxScore) * 100) + '%';
+
+  // IQ bar
+  const barPct = Math.min(((iq - 60) / 100) * 100, 100);
+  const bar = document.getElementById('iqBarFill');
+  bar.className = 'iq-bar-fill ' + (passed ? 'pass-bar' : 'fail-bar');
+  setTimeout(() => { bar.style.width = barPct + '%'; }, 200);
+
+  // Verdict banner
+  const banner = document.getElementById('verdictBanner');
+  if (passed) {
+    state.completedLevels[state.currentLevel] = true;
+    // Unlock next
+    const next = state.currentLevel + 1;
+    if (next <= 5 && !state.unlockedLevels.includes(next)) {
+      state.unlockedLevels.push(next);
+    }
+    banner.innerHTML = `<div class="pass-banner">
+      <div style="font-size:2rem;margin-bottom:8px">🏆</div>
+      <div style="font-weight:800;font-size:1.2rem;color:var(--accent)">YOU PASSED!</div>
+      <div style="color:var(--muted);margin-top:8px">IQ ${iq} — Level ${state.currentLevel + 1} is now unlocked!</div>
+    </div>`;
+    if (state.currentLevel < 5) {
+      document.getElementById('nextLevelBtn').style.display = 'inline-flex';
+      document.getElementById('nextLevelBtn').textContent = `Level ${state.currentLevel + 1} →`;
+    }
+  } else {
+    banner.innerHTML = `<div class="fail-banner">
+      <div style="font-size:2rem;margin-bottom:8px">❌</div>
+      <div style="font-weight:800;font-size:1.1rem;color:var(--accent3)">YOU DID NOT PASS</div>
+      <div style="color:var(--muted);margin-top:8px">Required IQ: 100 | Your IQ: ${iq}</div>
+    </div>`;
+    document.getElementById('nextLevelBtn').style.display = 'none';
+  }
+}
+
+function animateNumber(el, from, to, duration) {
+  const start = performance.now();
+  function step(now) {
+    const t = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 4);
+    el.textContent = Math.round(from + (to - from) * ease);
+    if (t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+// ─── NAV ─────────────────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function goToLevels() {
+  renderLevels();
+  showScreen('screenLevels');
+}
+
+function retryLevel() {
+  startLevel(state.currentLevel);
+}
+
+function goNextLevel() {
+  const next = state.currentLevel + 1;
+  if (next <= 5) startLevel(next);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+renderLevels();
+</script>
+</body>
+</html>
