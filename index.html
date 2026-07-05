@@ -1,0 +1,319 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Bebas+Neue&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  .iq-root {
+    width: 390px;
+    height: 693px;
+    background: #5b0db5;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 48px 24px 56px;
+    font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+    border-radius: 24px;
+  }
+
+  /* BG diagonal rays */
+  .bg-rays {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  /* Glow orb behind brain */
+  .glow-orb {
+    position: absolute;
+    width: 320px;
+    height: 320px;
+    background: radial-gradient(circle, #9B30FF 0%, #7B12E8 35%, transparent 70%);
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -55%);
+    pointer-events: none;
+  }
+
+  /* Title */
+  .page-label-wrap {
+    position: relative;
+    z-index: 11;
+    text-align: center;
+    width: 100%;
+    padding-left: 0;
+    margin-top: 5px;
+    margin-bottom: 6px;
+    transform: rotate(0deg);
+  }
+
+  .page-label {
+    display: block;
+    font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+    font-size: 65px;
+    font-weight: 700;
+    color: #FFEA5B;
+    letter-spacing: 1px;
+    margin-bottom: 40px;
+    text-shadow: 0 0 8px rgba(0,0,0,0.25);
+  }
+
+  .title-wrap {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    width: 100%;
+    padding-left: 0;
+    line-height: 1;
+    margin-top: 0;
+    margin-bottom: 8px;
+    transform: rotate(-7deg);
+  }
+
+  .title-test {
+    display: block;
+    font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+    font-size: 70px;
+    font-weight: 900;
+    color: #F6F6FF;
+    text-shadow: 0 0 18px rgba(160,40,255,0.35), 0 0 22px rgba(255,255,255,0.35);
+    letter-spacing: -2px;
+    line-height: 0.9;
+    -webkit-text-stroke: 1px rgba(160,40,255,0.7);
+  }
+
+  .title-row2 {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 8px;
+  }
+
+  .title-your {
+    font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+    font-size: 40px;
+    font-weight: 900;
+    color: #FFFFFF;
+    letter-spacing: -1.5px;
+    line-height: 0.95;
+    text-shadow: 0 0 14px rgba(160,40,255,0.25), 0 0 12px rgba(255,255,255,0.2);
+    -webkit-text-stroke: 0.9px rgba(160,40,255,0.7);
+  }
+
+  .title-iq {
+    font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+    font-size: 40px;
+    font-weight: 900;
+    color: #ff0000;
+    letter-spacing: -1.5px;
+    line-height: 0.95;
+    text-shadow: 0 0 14px rgba(0, 0, 0, 0.35), 0 0 16px rgba(180,100,255,0.55);
+    -webkit-text-stroke: 0.9px rgba(160,40,255,0.7);
+  }
+
+  /* Brain SVG area */
+  .brain-area {
+    position: relative;
+    z-index: 5;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    flex-direction: column;
+    gap: 18px;
+    padding-top: 4px;
+    padding-bottom: 80px;
+  }
+
+  .brain-area .play-btn {
+    position: absolute;
+    bottom: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 250px;
+    z-index: 50;
+  }
+
+  /* Play button */
+  .play-btn {
+    position: absolute;
+    z-index: 10;
+    width: 280px;
+    height: 68px;
+    background: #00ff5e;
+    border: 2.5px solid #B070FF;
+    border-radius: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    cursor: pointer;
+    box-shadow: 0 0 0 4px rgba(140,60,255,0.25), inset 0 1px 0 rgba(255,255,255,0.15);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+    text-decoration: none;
+    margin-top: 500px;
+  }
+
+  .play-btn:hover {
+    transform: scale(1.03);
+    box-shadow: 0 0 0 6px rgba(140,60,255,0.35), inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+
+  .play-btn:active {
+    transform: scale(0.97);
+  }
+
+  .play-icon {
+    width: 0;
+    height: 0;
+    border-top: 14px solid transparent;
+    border-bottom: 14px solid transparent;
+    border-left: 22px solid #FFFFFF;
+    margin-left: 4px;
+  }
+
+  .play-text {
+    font-family: 'Black Ops One', 'Arial Black', sans-serif;
+    font-size: 32px;
+    color: #FFFFFF;
+    letter-spacing: 2px;
+    text-shadow: 0 0 12px rgba(255,255,255,0.3);
+  }
+
+  /* Lightning animation */
+  @keyframes flicker1 { 0%,85%,100%{opacity:1} 86%{opacity:.3} 93%{opacity:.8} }
+  @keyframes flicker2 { 0%,70%,100%{opacity:.8} 71%{opacity:.1} 78%{opacity:.6} }
+  @keyframes pulse-glow { 0%,100%{opacity:.5} 50%{opacity:.85} }
+  @keyframes brain-float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+
+  .bolt1 { animation: flicker1 3.2s ease-in-out infinite; }
+  .bolt2 { animation: flicker2 2.7s ease-in-out infinite 0.4s; }
+  .bolt3 { animation: flicker1 4.1s ease-in-out infinite 1.1s; }
+  .bolt4 { animation: flicker2 3.6s ease-in-out infinite 0.7s; }
+  .glow-orb { animation: pulse-glow 2.5s ease-in-out infinite; }
+  .brain-svg { animation: brain-float 3.8s ease-in-out infinite; }
+</style>
+
+<div class="iq-root">
+
+  <!-- background diagonal rays -->
+  <svg class="bg-rays" viewBox="0 0 390 693" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <radialGradient id="bgGrad" cx="50%" cy="50%" r="70%">
+        <stop offset="0%" stop-color="#7B1FD4"/>
+        <stop offset="100%" stop-color="#420090"/>
+      </radialGradient>
+    </defs>
+    <rect width="390" height="693" fill="url(#bgGrad)"/>
+    <!-- subtle diagonal panels -->
+    <line x1="195" y1="0" x2="0" y2="400" stroke="rgba(160,80,255,0.08)" stroke-width="80"/>
+    <line x1="195" y1="0" x2="390" y2="400" stroke="rgba(160,80,255,0.06)" stroke-width="80"/>
+    <line x1="195" y1="0" x2="50" y2="693" stroke="rgba(140,60,255,0.05)" stroke-width="60"/>
+    <line x1="195" y1="0" x2="340" y2="693" stroke="rgba(140,60,255,0.05)" stroke-width="60"/>
+  </svg>
+
+  <div class="glow-orb"></div>
+
+  <!-- TITLE -->
+  <div class="page-label-wrap">
+    <span class="page-label">BiQ Quiz</span>
+  </div>
+  <div class="title-wrap">
+    <span class="title-test">TEST</span>
+    <div class="title-row2">
+      <span class="title-your">YOUR</span>
+      <span class="title-iq">IQ</span>
+    </div>
+  </div>
+<div class="play-btn" onclick="location.href='iq-quiz.html'">
+  <div class="play-icon"></div>
+  <span class="play-text">PLAY</span>
+</div>
+  <!-- EARTH + LIGHTNING -->
+  <div class="brain-area">
+    <svg class="brain-svg" width="300" height="260" viewBox="0 0 300 260" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="earthGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#A0F0FF" stop-opacity="0.9"/>
+          <stop offset="60%" stop-color="#50C4FF" stop-opacity="0.55"/>
+          <stop offset="100%" stop-color="#180A4F" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="earthGrad" cx="45%" cy="45%" r="55%">
+          <stop offset="0%" stop-color="#80E7FF"/>
+          <stop offset="40%" stop-color="#2F8AE8"/>
+          <stop offset="100%" stop-color="#0C2C83"/>
+        </radialGradient>
+        <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#FFD0FF"/>
+          <stop offset="100%" stop-color="#8850FF"/>
+        </linearGradient>
+        <filter id="glow-filter">
+          <feGaussianBlur stdDeviation="4" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+
+      <!-- glow behind planet -->
+      <ellipse cx="150" cy="140" rx="110" ry="90" fill="url(#earthGlow)"/>
+
+      <!-- earth core -->
+      <g transform="translate(150,125)" filter="url(#glow-filter)">
+        <circle cx="0" cy="0" r="72" fill="url(#earthGrad)" stroke="#B8D4FF" stroke-width="2"/>
+        <path d="M-50,-18 C-42,-36 -18,-42 10,-38 C36,-34 44,-10 40,12 C36,38 10,46 -18,38 C-40,32 -52,10 -50,-18 Z" fill="#76D9A1" opacity="0.95"/>
+        <path d="M24,-10 C34,-20 46,-16 50,-2 C52,14 42,32 24,26 C10,20 0,10 2,-6 C4,-18 14,-24 24,-10 Z" fill="#98E3FF" opacity="0.8"/>
+        <path d="M-14,32 C-4,28 8,30 20,24 C32,18 42,10 38,-4 C34,-20 18,-28 2,-26 C-12,-24 -24,-18 -28,-6 C-30,6 -24,20 -14,32 Z" fill="#6AD2FF" opacity="0.85"/>
+
+        <!-- anime highlight shine -->
+        <ellipse cx="-30" cy="-30" rx="24" ry="36" fill="rgba(255,255,255,0.35)" transform="rotate(-20 -30 -30)"/>
+        <path d="M-40,-20 Q-30,-32 -18,-24" fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="38" cy="-42" r="5" fill="#FFFFFF" opacity="0.9"/>
+        <circle cx="48" cy="-50" r="2.5" fill="#FFFFFF" opacity="0.9"/>
+      </g>
+
+      <!-- orbit ring -->
+      <ellipse cx="150" cy="130" rx="110" ry="42" fill="none" stroke="url(#ringGrad)" stroke-width="8" stroke-opacity="0.9" transform="rotate(-15 150 130)"/>
+      <ellipse cx="150" cy="130" rx="110" ry="42" fill="none" stroke="#FFFFFF" stroke-width="1" stroke-opacity="0.3" transform="rotate(-15 150 130)"/>
+
+      <!-- LIGHTNING BOLTS -->
+      <!-- top right long bolt -->
+      <path class="bolt1" d="M220,10 L200,55 L215,55 L188,110 L205,110 L172,165" fill="none" stroke="#E8CCFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path class="bolt1" d="M220,10 L200,55 L215,55 L188,110" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1" stroke-linecap="round"/>
+
+      <!-- top left bolt -->
+      <path class="bolt2" d="M75,18 L90,58 L78,58 L100,105" fill="none" stroke="#E8CCFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+      <!-- right mid bolt -->
+      <path class="bolt3" d="M258,90 L242,118 L252,118 L232,152" fill="none" stroke="#E8CCFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+      <!-- left mid bolt -->
+      <path class="bolt4" d="M40,100 L58,128 L46,128 L68,162" fill="none" stroke="#E8CCFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+      <!-- scatter sparks -->
+      <g class="bolt1" fill="#DDB8FF">
+        <circle cx="240" cy="40" r="2.5"/>
+        <circle cx="255" cy="65" r="1.8"/>
+        <circle cx="60" cy="55" r="2"/>
+        <circle cx="42" cy="80" r="1.5"/>
+      </g>
+      <g class="bolt2" fill="#FFFFFF">
+        <circle cx="228" cy="30" r="1.5"/>
+        <circle cx="55" cy="42" r="1.8"/>
+        <circle cx="270" cy="110" r="1.5"/>
+        <circle cx="28" cy="130" r="1.5"/>
+      </g>
+
+      <!-- ambient glow dots -->
+      <circle cx="240" cy="50" r="8" fill="rgba(180,100,255,0.3)"/>
+      <circle cx="58" cy="58" r="6" fill="rgba(180,100,255,0.25)"/>
+      <circle cx="265" cy="120" r="5" fill="rgba(180,100,255,0.2)"/>
+    </svg>
+ 
+  </div>
+  
+
